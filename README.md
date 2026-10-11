@@ -16,6 +16,8 @@
 - Added password visibility toggle
 - Implemented Login/Signup switching
 
+![alt text](image-1.png)
+
 ### 11 October 2026 — Dashboard UI
 
 - Added dashboard layout with sidebar and overview cards
@@ -24,4 +26,3 @@
 ![SecureTrace AI Dashboard](dashboard.png)
 
 
-![alt text](image-1.png)
