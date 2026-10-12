@@ -25,4 +25,10 @@
 
 ![SecureTrace AI Dashboard](dashboard.png)
 
+### 12 October 2026 - Documents Management UI
+- Added Documents page with search and file upload UI
+- Implemented file download and preview for uploaded files
+- Connected Dashboard navigation to Documents page
+- Prepared frontend for future backend integration
 
+![alt text](image-2.png)
