@@ -160,10 +160,12 @@ export default function SharingPage() {
                 key={label}
                 onClick={() => {
                   setMobileMenuOpen(false)
-                  if (path === '/audit' || path === '/investigation') {
+
+                  if (path === '/investigation') {
                     setNotice(`${label} page is coming soon.`)
                     return
                   }
+
                   navigate(path)
                 }}
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${

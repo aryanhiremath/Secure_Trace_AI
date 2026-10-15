@@ -95,6 +95,10 @@ function handleNavigation(label) {
     return
   }
 
+  if (label === 'Audit Trail') {
+    navigate('/audit')
+    return
+  }
   setActivePage(label)
 }
 

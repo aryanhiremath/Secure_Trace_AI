@@ -1,3 +1,4 @@
+
 ## Development Progress
 
 ### 06 October 2026 — Project Initialization
@@ -33,6 +34,7 @@
 - Prepared frontend for future backend integration
 
 ![Documents Management UI](image-2.png)
+
 ### 15 October 2026 — Secure Sharing UI
 
 - Added Secure Sharing page with document selection and recipient email
@@ -43,3 +45,12 @@
 - Connected Dashboard navigation to Secure Sharing
 
 ![Secure Sharing Page](sharing.png)
+
+### 15 October 2026 — Audit Trail UI
+
+- Created Audit Trail page with demo events
+- Added search and filters for audit records
+- Implemented event details view
+- Fixed navigation between Dashboard and Audit Trail
+
+![Audit Trail](audit.png)
