@@ -81,16 +81,23 @@ function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [search, setSearch] = useState('')
 
-  function handleNavigation(label) {
-    setSidebarOpen(false)
+  
+function handleNavigation(label) {
+  setSidebarOpen(false)
 
-    if (label === 'Documents') {
-      navigate('/documents')
-      return
-    }
-
-    setActivePage(label)
+  if (label === 'Documents') {
+    navigate('/documents')
+    return
   }
+
+  if (label === 'Shared Files') {
+    navigate('/sharing')
+    return
+  }
+
+  setActivePage(label)
+}
+
 
   const filteredActivities = activities.filter((activity) =>
     `${activity.name} ${activity.action} ${activity.user}`
