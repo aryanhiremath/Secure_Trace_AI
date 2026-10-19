@@ -1,56 +1,80 @@
+## Backend Setup
 
-## Development Progress
+### 19 October 2026 — FastAPI Backend Initialization
 
-### 06 October 2026 — Project Initialization
+- Initialized FastAPI backend
+- Configured CORS for React frontend integration
+- Added SQLite database connection using SQLAlchemy
+- Created initial Document database model
+- Added health check API endpoint
+- Added `.gitignore` rules for Python environment, local database, uploads, and secrets
 
-- Initialized React + Vite project
-- Configured Tailwind CSS
-- Added Lucide React
-- Connected project with GitHub
-- Verified development environment
+### Technologies
 
-![alt text](image.png)
+- **Frontend:** React, Vite, Tailwind CSS, Lucide React
+- **Backend:** Python, FastAPI, Uvicorn
+- **Database:** SQLite, SQLAlchemy
 
-### 10 October 2026 — Login UI Frontend Only
+### Run the Project Locally
 
-- Designed Login and Signup UI
-- Added password visibility toggle
-- Implemented Login/Signup switching
+**1. Clone the repository**
 
-![alt text](image-1.png)
+```bash
+git clone https://github.com/aryanhiremath/Secure_Trace_AI.git
+cd Secure_Trace_AI
+```
 
-### 11 October 2026 — Dashboard UI
+**2. Start the frontend**
 
-- Added dashboard layout with sidebar and overview cards
-- Added recent activity table and security status panel
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-![SecureTrace AI Dashboard](dashboard.png)
+**3. Start the backend**
 
-### 12 October 2026 — Documents Management UI
+Open a separate terminal from the project root:
 
-- Added Documents page with search and file upload UI
-- Implemented file download and preview for uploaded files
-- Connected Dashboard navigation to Documents page
-- Prepared frontend for future backend integration
+```bash
+cd backend
+python -m venv venv
+```
 
-![Documents Management UI](image-2.png)
+Activate the virtual environment on Windows PowerShell:
 
-### 15 October 2026 — Secure Sharing UI
+```powershell
+.\venv\Scripts\Activate.ps1
+```
 
-- Added Secure Sharing page with document selection and recipient email
-- Added View Only and View & Download permissions
-- Added configurable link expiry options
-- Implemented demo link generation, copy and revoke actions
-- Added shared files list with search and status cards
-- Connected Dashboard navigation to Secure Sharing
+Install backend dependencies:
 
-![Secure Sharing Page](sharing.png)
+```bash
+pip install fastapi "uvicorn[standard]" python-multipart sqlalchemy
+```
 
-### 15 October 2026 — Audit Trail UI
+Run the backend:
 
-- Created Audit Trail page with demo events
-- Added search and filters for audit records
-- Implemented event details view
-- Fixed navigation between Dashboard and Audit Trail
+```bash
+uvicorn main:app --reload
+```
 
-![Audit Trail](audit.png)
+**Backend URLs**
+
+- Health Check: http://127.0.0.1:8000/api/health
+- API Documentation: http://127.0.0.1:8000/docs
+
+### Team Workflow
+
+1. Pull the latest changes before starting work:
+
+   ```bash
+   git pull origin main
+   ```
+
+2. Create a separate feature branch for new features when possible.
+3. Test changes locally before committing.
+4. Use meaningful commit messages and push completed changes.
+5. Never commit virtual environments, private uploads, database files, or secrets.
+
+**Note:** The backend currently contains the initial API setup and document model. Document upload APIs, authentication, encryption, and secure sharing backend functionality are still to be implemented.
