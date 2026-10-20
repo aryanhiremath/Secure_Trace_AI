@@ -17,11 +17,13 @@ import {
   ArrowUpRight,
   Menu,
   X,
+  Users,
 } from 'lucide-react'
 
 const navigation = [
   { label: 'Overview', icon: LayoutDashboard },
   { label: 'Documents', icon: Files },
+  { label: 'Teams', icon: Users },
   { label: 'Shared Files', icon: Share2 },
   { label: 'Audit Trail', icon: ScrollText },
   { label: 'Investigation', icon: ShieldAlert },
@@ -85,8 +87,18 @@ function DashboardPage() {
 function handleNavigation(label) {
   setSidebarOpen(false)
 
+  if (label === 'Overview') {
+    navigate('/dashboard')
+    return
+  }
+
   if (label === 'Documents') {
     navigate('/documents')
+    return
+  }
+
+  if (label === 'Teams') {
+    navigate('/teams')
     return
   }
 
@@ -99,6 +111,7 @@ function handleNavigation(label) {
     navigate('/audit')
     return
   }
+
   setActivePage(label)
 }
 

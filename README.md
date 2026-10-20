@@ -150,3 +150,14 @@ Implemented document management endpoints using FastAPI, SQLAlchemy, and SQLite.
 Uploaded files are stored locally in `backend/uploads/`, while their metadata is stored in SQLite.
 
 **Current limitations:** Authentication, authorization, encryption, and production-grade file security are not yet implemented.
+
+### 20 October 2026 — Frontend Integration & Teams Module
+
+- Integrated frontend with document upload workflow.
+- Added Teams module with team creation and member management.
+- Implemented creator/member-based team visibility and UI permissions.
+- Updated login validation and current-user handling.
+- Added Teams navigation and routing.
+- Verified all four Teams workflow tests.
+
+**Note:** Team data and permissions currently use frontend-side local storage; server-side authorization remains future work.

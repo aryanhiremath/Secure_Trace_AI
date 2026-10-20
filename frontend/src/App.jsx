@@ -5,7 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import DocumentsPage from './pages/DocumentsPage'
 import SharingPage from './pages/SharingPage'
 import AuditTrailPage from './pages/AuditTrailPage'
-
+import TeamsPage from './pages/TeamsPage'
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +17,7 @@ function App() {
         <Route path="/sharing" element={<SharingPage />} />
         <Route path="/audit" element={<AuditTrailPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/teams" element={<TeamsPage />} />
       </Routes>
     </BrowserRouter>
   )

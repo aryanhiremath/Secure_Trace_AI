@@ -1,5 +1,5 @@
-
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ShieldCheck,
   LockKeyhole,
@@ -13,10 +13,82 @@ import {
   UserRound,
 } from 'lucide-react'
 
-function App() {
+const DEMO_USERS = [
+  {
+    email: 'admin@securetrace.ai',
+    password: 'Admin@123',
+  },
+  {
+    email: 'isba@gmail.com',
+    password: 'Isba@123',
+  },
+  {
+    email: 'aryan@gmail.com',
+    password: 'Aryan@123',
+  },
+  {
+    email: 'shreyas@gmail.com',
+    password: 'Shreyas@123',
+  },
+  {
+    email: 'mustakim@gmail.com',
+    password: 'Mustakim@123',
+  },
+]
+
+export default function LoginPage() {
+  const navigate = useNavigate()
+
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    setError('')
+    setNotice('')
+
+    if (isSignUp) {
+      setNotice(
+        'Sign up is not available yet. Please use the demo login.'
+      )
+      return
+    }
+
+    const matchedUser = DEMO_USERS.find(
+      (user) =>
+        user.email === email.trim().toLowerCase() &&
+        user.password === password
+    )
+
+    if (!matchedUser) {
+      setError('Invalid email or password.')
+      return
+    }
+
+    // Save the logged-in user's identity for TeamsPage
+    localStorage.setItem(
+      'securetrace_current_user',
+      matchedUser.email
+    )
+
+    if (rememberMe) {
+      sessionStorage.setItem('securetrace_demo_logged_in', 'true')
+      sessionStorage.setItem(
+        'securetrace_demo_email',
+        matchedUser.email
+      )
+    } else {
+      sessionStorage.removeItem('securetrace_demo_logged_in')
+      sessionStorage.removeItem('securetrace_demo_email')
+    }
+
+    navigate('/dashboard')
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050b19] text-white">
@@ -46,10 +118,9 @@ function App() {
         </p>
       </header>
 
-      {/* Main content */}
+      {/* Main Content */}
       <section className="relative z-10 mx-auto grid max-w-[1440px] items-center gap-12 px-6 pb-12 pt-8 sm:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:px-16 lg:pb-20 lg:pt-4">
-
-        {/* Left panel */}
+        {/* Left Panel */}
         <div className="flex flex-col justify-center">
           <p className="mb-4 text-xs font-semibold tracking-[0.24em] text-blue-400 sm:text-sm">
             INTELLIGENT DOCUMENT SECURITY
@@ -74,7 +145,11 @@ function App() {
             <div className="absolute h-28 w-28 rotate-45 rounded-2xl border border-indigo-400/30 bg-indigo-500/10" />
 
             <div className="relative flex h-28 w-24 items-center justify-center rounded-2xl border border-blue-300/50 bg-gradient-to-br from-blue-500/30 to-indigo-700/40 shadow-[0_0_60px_rgba(37,99,235,0.25)] sm:h-32 sm:w-28">
-              <FileLock2 size={66} strokeWidth={1.25} className="text-blue-200" />
+              <FileLock2
+                size={66}
+                strokeWidth={1.25}
+                className="text-blue-200"
+              />
             </div>
 
             <div className="absolute left-[22%] top-[24%] h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_14px_#22d3ee]" />
@@ -107,9 +182,8 @@ function App() {
           </div>
         </div>
 
-        {/* Login / Signup card */}
+        {/* Login / Signup Card */}
         <div className="mx-auto w-full max-w-[540px] rounded-2xl border border-blue-400/25 bg-[#091324]/85 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.25)] backdrop-blur-xl sm:p-10 lg:p-12">
-
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h2>
@@ -124,7 +198,11 @@ function App() {
           <div className="mt-9 grid grid-cols-2 rounded-xl border border-blue-400/15 bg-[#0b172b] p-1">
             <button
               type="button"
-              onClick={() => setIsSignUp(false)}
+              onClick={() => {
+                setIsSignUp(false)
+                setError('')
+                setNotice('')
+              }}
               className={`rounded-lg px-4 py-3 font-semibold transition ${
                 !isSignUp
                   ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
@@ -136,7 +214,11 @@ function App() {
 
             <button
               type="button"
-              onClick={() => setIsSignUp(true)}
+              onClick={() => {
+                setIsSignUp(true)
+                setError('')
+                setNotice('')
+              }}
               className={`rounded-lg px-4 py-3 transition ${
                 isSignUp
                   ? 'bg-gradient-to-r from-blue-500 to-indigo-600 font-semibold text-white shadow-lg'
@@ -147,23 +229,16 @@ function App() {
             </button>
           </div>
 
-          <form
-            className="mt-9 space-y-5"
-            onSubmit={(event) => {
-              event.preventDefault()
-              alert(
-                isSignUp
-                  ? 'Signup UI ready. Registration will be connected to FastAPI later.'
-                  : 'Login UI ready. Authentication will be connected to FastAPI later.'
-              )
-            }}
-          >
-            {/* Name: signup only */}
+          <form className="mt-9 space-y-5" onSubmit={handleSubmit}>
+            {/* Full Name */}
             {isSignUp && (
               <label className="block">
                 <span className="sr-only">Full Name</span>
                 <div className="flex items-center gap-3 rounded-xl border border-slate-600/80 bg-[#081120]/70 px-4 transition focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/15">
-                  <UserRound size={21} className="shrink-0 text-blue-200/80" />
+                  <UserRound
+                    size={21}
+                    className="shrink-0 text-blue-200/80"
+                  />
                   <input
                     type="text"
                     required
@@ -185,6 +260,11 @@ function App() {
                   required
                   placeholder="Email Address"
                   autoComplete="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value)
+                    setError('')
+                  }}
                   className="min-w-0 w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-slate-400 sm:text-base"
                 />
               </div>
@@ -194,19 +274,28 @@ function App() {
             <label className="block">
               <span className="sr-only">Password</span>
               <div className="flex items-center gap-3 rounded-xl border border-slate-600/80 bg-[#081120]/70 px-4 transition focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/15">
-                <LockKeyhole size={21} className="shrink-0 text-blue-200/80" />
+                <LockKeyhole
+                  size={21}
+                  className="shrink-0 text-blue-200/80"
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   minLength={8}
                   placeholder="Password (minimum 8 characters)"
                   autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value)
+                    setError('')
+                  }}
                   className="min-w-0 w-full bg-transparent py-4 text-sm text-white outline-none placeholder:text-slate-400 sm:text-base"
                 />
+
                 <button
                   type="button"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((current) => !current)}
                   className="shrink-0 text-slate-400 transition hover:text-blue-300"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -214,7 +303,7 @@ function App() {
               </div>
             </label>
 
-            {/* Login options */}
+            {/* Login Options */}
             {!isSignUp && (
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                 <label className="flex cursor-pointer items-center gap-2 text-blue-100/80">
@@ -229,12 +318,33 @@ function App() {
 
                 <button
                   type="button"
-                  onClick={() => alert('Password reset will be added later.')}
+                  onClick={() =>
+                    setNotice('Password reset will be added later.')
+                  }
                   className="text-blue-400 transition hover:text-blue-300"
                 >
                   Forgot password?
                 </button>
               </div>
+            )}
+
+            {/* Error / Notice */}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300"
+              >
+                {error}
+              </p>
+            )}
+
+            {notice && (
+              <p
+                role="status"
+                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200"
+              >
+                {notice}
+              </p>
             )}
 
             <button
@@ -256,7 +366,9 @@ function App() {
 
               <button
                 type="button"
-                onClick={() => alert('GitHub sign-in is not configured.')}
+                onClick={() =>
+                  setNotice('GitHub sign-in is not configured yet.')
+                }
                 className="w-full rounded-xl border border-slate-600/80 py-3.5 text-sm font-medium transition hover:border-blue-400/50 hover:bg-white/[0.03]"
               >
                 Continue with GitHub
@@ -268,12 +380,22 @@ function App() {
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => {
+                setIsSignUp((current) => !current)
+                setError('')
+                setNotice('')
+              }}
               className="ml-1 font-medium text-blue-400 hover:text-blue-300"
             >
               {isSignUp ? 'Login' : 'Sign Up'}
             </button>
           </p>
+
+          {!isSignUp && (
+            <p className="mt-5 text-center text-xs text-slate-500">
+              Demo login · Backend authentication is not connected
+            </p>
+          )}
         </div>
       </section>
     </main>
@@ -296,5 +418,3 @@ function Feature({ icon, title, description }) {
     </div>
   )
 }
-
-export default App
