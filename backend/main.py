@@ -160,3 +160,35 @@ def download_document(
         filename=document.filename,
         media_type="application/octet-stream",
     )
+
+
+@app.get("/api/documents/{document_id}/preview")
+def preview_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+):
+    document = (
+        db.query(models.Document)
+        .filter(models.Document.id == document_id)
+        .first()
+    )
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    file_path = UPLOAD_DIR / document.stored_filename
+
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Stored file not found.")
+
+    if file_path.suffix.lower() != ".pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Browser preview is currently available for PDF files only.",
+        )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "inline"},
+    )
