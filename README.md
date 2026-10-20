@@ -135,3 +135,18 @@ uvicorn main:app --reload
 5. Never commit virtual environments, private uploads, database files, or secrets.
 
 **Note:** The backend currently contains the initial API setup and document model. Document upload APIs, authentication, encryption, and secure sharing backend functionality are still to be implemented.
+
+### Document Management API
+
+Implemented document management endpoints using FastAPI, SQLAlchemy, and SQLite.
+
+- `POST /api/documents/upload` — Upload supported documents (maximum 10 MB)
+- `GET /api/documents` — Retrieve uploaded document metadata
+- `GET /api/documents/{document_id}/download` — Download a stored document
+- `GET /api/health` — Check backend health
+
+**Supported file extensions:** PDF, DOC, DOCX, TXT, PNG, JPG, JPEG.
+
+Uploaded files are stored locally in `backend/uploads/`, while their metadata is stored in SQLite.
+
+**Current limitations:** Authentication, authorization, encryption, and production-grade file security are not yet implemented.
