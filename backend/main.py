@@ -1,13 +1,23 @@
+
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Header,
+    HTTPException,
+    Query,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 import models
 from database import Base, engine, get_db
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,7 +29,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,7 +42,49 @@ UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg"}
+
+ALLOWED_EXTENSIONS = {
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt",
+    ".png",
+    ".jpg",
+    ".jpeg",
+}
+
+ALLOWED_DEMO_USERS = {
+    "admin@securetrace.ai",
+    "isba@gmail.com",
+    "aryan@gmail.com",
+    "shreyas@gmail.com",
+    "mustakim@gmail.com",
+}
+
+
+def get_demo_user(
+    x_user_email: str = Header(..., alias="X-User-Email"),
+):
+    """Resolve the current demo user from the request header."""
+    email = x_user_email.strip().lower()
+
+    if email not in ALLOWED_DEMO_USERS:
+        raise HTTPException(
+            status_code=401,
+            detail="Unknown demo user.",
+        )
+
+    return email
+
+
+def document_to_dict(document: models.Document):
+    return {
+        "id": document.id,
+        "filename": document.filename,
+        "content_type": document.content_type,
+        "file_size": document.file_size,
+        "uploaded_at": document.uploaded_at,
+    }
 
 
 @app.get("/")
@@ -52,6 +107,7 @@ def health_check():
 async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    owner_email: str = Depends(get_demo_user),
 ):
     original_name = Path(file.filename or "").name
     extension = Path(original_name).suffix.lower()
@@ -68,7 +124,12 @@ async def upload_document(
 
     try:
         with destination.open("wb") as output:
-            while chunk := await file.read(1024 * 1024):
+            while True:
+                chunk = await file.read(1024 * 1024)
+
+                if not chunk:
+                    break
+
                 file_size += len(chunk)
 
                 if file_size > MAX_FILE_SIZE:
@@ -90,23 +151,21 @@ async def upload_document(
             stored_filename=stored_filename,
             content_type=file.content_type,
             file_size=file_size,
+            owner_email=owner_email,
         )
 
         db.add(document)
         db.commit()
         db.refresh(document)
 
-        return {
-            "id": document.id,
-            "filename": document.filename,
-            "content_type": document.content_type,
-            "file_size": document.file_size,
-            "uploaded_at": document.uploaded_at,
-        }
+        return document_to_dict(document)
 
     except Exception:
+        db.rollback()
+
         if destination.exists():
             destination.unlink()
+
         raise
 
     finally:
@@ -114,38 +173,51 @@ async def upload_document(
 
 
 @app.get("/api/documents")
-def list_documents(db: Session = Depends(get_db)):
+def list_documents(
+    db: Session = Depends(get_db),
+    owner_email: str = Depends(get_demo_user),
+):
     documents = (
         db.query(models.Document)
+        .filter(models.Document.owner_email == owner_email)
         .order_by(models.Document.id.desc())
         .all()
     )
 
-    return [
-        {
-            "id": document.id,
-            "filename": document.filename,
-            "content_type": document.content_type,
-            "file_size": document.file_size,
-            "uploaded_at": document.uploaded_at,
-        }
-        for document in documents
-    ]
+    return [document_to_dict(document) for document in documents]
 
 
-@app.get("/api/documents/{document_id}/download")
-def download_document(
+@app.get("/api/documents/{document_id}/preview")
+def preview_document(
     document_id: int,
+    owner_email: str = Query(...),
     db: Session = Depends(get_db),
 ):
+    # Validate the demo user's email from the preview URL.
+    owner_email = owner_email.strip().lower()
+
+    if owner_email not in ALLOWED_DEMO_USERS:
+        raise HTTPException(
+            status_code=401,
+            detail="Unknown demo user.",
+        )
+
     document = (
         db.query(models.Document)
-        .filter(models.Document.id == document_id)
+        .filter(
+            models.Document.id == document_id,
+            models.Document.owner_email == owner_email,
+        )
         .first()
     )
 
+    # Return the same response if the file doesn't exist
+    # or belongs to a different user.
     if not document:
-        raise HTTPException(status_code=404, detail="Document not found.")
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found.",
+        )
 
     file_path = UPLOAD_DIR / document.stored_filename
 
@@ -154,32 +226,6 @@ def download_document(
             status_code=404,
             detail="Stored file not found.",
         )
-
-    return FileResponse(
-        path=file_path,
-        filename=document.filename,
-        media_type="application/octet-stream",
-    )
-
-
-@app.get("/api/documents/{document_id}/preview")
-def preview_document(
-    document_id: int,
-    db: Session = Depends(get_db),
-):
-    document = (
-        db.query(models.Document)
-        .filter(models.Document.id == document_id)
-        .first()
-    )
-
-    if not document:
-        raise HTTPException(status_code=404, detail="Document not found.")
-
-    file_path = UPLOAD_DIR / document.stored_filename
-
-    if not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Stored file not found.")
 
     if file_path.suffix.lower() != ".pdf":
         raise HTTPException(

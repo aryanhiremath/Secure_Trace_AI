@@ -161,3 +161,16 @@ Uploaded files are stored locally in `backend/uploads/`, while their metadata is
 - Verified all four Teams workflow tests.
 
 **Note:** Team data and permissions currently use frontend-side local storage; server-side authorization remains future work.
+
+## Development Progress
+
+### 21 October 2026 — Document Ownership & Backend Integration
+- Removes download pdf feature
+
+- Integrated document upload with FastAPI backend.
+- Added document ownership using `owner_email`.
+- Implemented user-specific document listing.
+- Added ownership checks for PDF preview.
+- Added file type and 10 MB upload size validation.
+- Connected frontend upload, listing, and preview with backend APIs.
+- Added SQLite database migration for document ownership.

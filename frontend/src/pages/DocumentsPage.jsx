@@ -5,7 +5,6 @@ import {
   Search,
   Upload,
   FileText,
-  Download,
   Eye,
   ShieldCheck,
   Clock,
@@ -37,6 +36,20 @@ const ALLOWED_EXTENSIONS = [
   '.jpg',
   '.jpeg',
 ]
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+
+function getCurrentUserEmail() {
+  return (
+    localStorage.getItem('securetrace_current_user') || ''
+  ).trim().toLowerCase()
+}
+
+function getUserHeaders() {
+  return {
+    'X-User-Email': getCurrentUserEmail(),
+  }
+}
 
 function formatFileSize(bytes) {
   if (bytes >= 1024 * 1024) {
@@ -105,21 +118,40 @@ export default function DocumentsPage() {
   const [activeMenu, setActiveMenu] = useState(null)
 
   const fetchDocuments = useCallback(async () => {
+    const email = getCurrentUserEmail()
+
+    if (!email) {
+      setDocuments([])
+      setError('Please log in to view your documents.')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/documents`)
+      const response = await fetch(
+        `${API_BASE_URL}/api/documents`,
+        {
+          headers: getUserHeaders(),
+        }
+      )
 
       if (!response.ok) {
-        throw new Error('Could not load documents from the backend.')
+        const body = await response.json().catch(() => ({}))
+
+        throw new Error(
+          body.detail || 'Could not load documents from the backend.'
+        )
       }
 
       const data = await response.json()
       setDocuments(data.map(mapApiDocument))
-    } catch {
+    } catch (err) {
       setError(
-        'Cannot connect to the backend. Make sure FastAPI is running.'
+        err.message ||
+          'Cannot connect to the backend. Make sure FastAPI is running.'
       )
     } finally {
       setLoading(false)
@@ -147,6 +179,13 @@ export default function DocumentsPage() {
 
     if (files.length === 0) return
 
+    const email = getCurrentUserEmail()
+
+    if (!email) {
+      setError('Please log in before uploading documents.')
+      return
+    }
+
     setUploading(true)
     setError('')
     setNotice('')
@@ -163,7 +202,7 @@ export default function DocumentsPage() {
           continue
         }
 
-        if (file.size > 10 * 1024 * 1024) {
+        if (file.size > MAX_FILE_SIZE) {
           failedUploads.push(`${file.name}: exceeds the 10 MB limit`)
           continue
         }
@@ -181,6 +220,7 @@ export default function DocumentsPage() {
             `${API_BASE_URL}/api/documents/upload`,
             {
               method: 'POST',
+              headers: getUserHeaders(),
               body: formData,
             }
           )
@@ -190,9 +230,12 @@ export default function DocumentsPage() {
 
             try {
               const body = await response.json()
-              if (body.detail) message = body.detail
+
+              if (body.detail) {
+                message = body.detail
+              }
             } catch {
-              // Use the default error message.
+              // Keep the default error message.
             }
 
             failedUploads.push(`${file.name}: ${message}`)
@@ -201,7 +244,9 @@ export default function DocumentsPage() {
 
           successfulUploads.push(file.name)
         } catch {
-          failedUploads.push(`${file.name}: backend connection failed`)
+          failedUploads.push(
+            `${file.name}: backend connection failed`
+          )
         }
       }
 
@@ -209,6 +254,7 @@ export default function DocumentsPage() {
         setNotice(
           `${successfulUploads.length} file(s) uploaded successfully.`
         )
+
         await fetchDocuments()
       }
 
@@ -220,50 +266,32 @@ export default function DocumentsPage() {
     }
   }
 
-  async function downloadDocument(document) {
-    if (!document.id) return
-
-    setError('')
-    setNotice('')
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/documents/${document.id}/download`
-      )
-
-      if (!response.ok) {
-        throw new Error('Unable to download this document.')
-      }
-
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const link = window.document.createElement('a')
-
-      link.href = url
-      link.download = document.name
-      window.document.body.appendChild(link)
-      link.click()
-      link.remove()
-
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch (err) {
-      setError(err.message || 'Download failed. Check the backend connection.')
-    }
-  }
-
   function viewDocument(document) {
     if (!document.id) return
 
     setError('')
     setNotice('')
 
-    if (!document.name.toLowerCase().endsWith('.pdf')) {
-      setError('Browser preview is currently available for PDF files only.')
+    const email = getCurrentUserEmail()
+
+    if (!email) {
+      setError('Please log in to preview documents.')
       return
     }
 
+    if (!document.name.toLowerCase().endsWith('.pdf')) {
+      setError(
+        'Browser preview is currently available for PDF files only.'
+      )
+      return
+    }
+
+    const previewUrl =
+      `${API_BASE_URL}/api/documents/${document.id}/preview` +
+      `?owner_email=${encodeURIComponent(email)}`
+
     const previewWindow = window.open(
-      `${API_BASE_URL}/api/documents/${document.id}/preview`,
+      previewUrl,
       '_blank',
       'noopener,noreferrer'
     )
@@ -302,7 +330,9 @@ export default function DocumentsPage() {
             <h1 className="font-semibold tracking-wide text-white">
               SecureTrace
             </h1>
-            <p className="text-xs text-cyan-400">AI SECURITY PLATFORM</p>
+            <p className="text-xs text-cyan-400">
+              AI SECURITY PLATFORM
+            </p>
           </div>
 
           <button
@@ -349,7 +379,9 @@ export default function DocumentsPage() {
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="mb-2 flex items-center gap-2 text-cyan-300">
               <ShieldCheck size={18} />
-              <span className="text-sm font-medium">System Status</span>
+              <span className="text-sm font-medium">
+                System Status
+              </span>
             </div>
 
             <p className="text-xs leading-5 text-slate-400">
@@ -392,7 +424,9 @@ export default function DocumentsPage() {
 
           <div className="hidden items-center gap-3 sm:flex">
             <ShieldCheck size={19} className="text-cyan-400" />
-            <span className="text-sm text-slate-400">Admin Workspace</span>
+            <span className="text-sm text-slate-400">
+              Admin Workspace
+            </span>
           </div>
         </header>
 
@@ -403,7 +437,9 @@ export default function DocumentsPage() {
                 SecureTrace AI / Workspace
               </p>
 
-              <h1 className="text-3xl font-bold text-white">Documents</h1>
+              <h1 className="text-3xl font-bold text-white">
+                Documents
+              </h1>
 
               <p className="mt-2 text-sm text-slate-400">
                 Manage and monitor your secure documents.
@@ -573,15 +609,6 @@ export default function DocumentsPage() {
                           <div className="flex justify-end gap-2">
                             <button
                               type="button"
-                              onClick={() => downloadDocument(document)}
-                              title="Download"
-                              className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-cyan-400"
-                            >
-                              <Download size={17} />
-                            </button>
-
-                            <button
-                              type="button"
                               onClick={() => viewDocument(document)}
                               title="Preview document"
                               className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-cyan-400"
@@ -622,21 +649,6 @@ export default function DocumentsPage() {
                                       className="mr-2 inline"
                                     />
                                     Preview
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveMenu(null)
-                                      downloadDocument(document)
-                                    }}
-                                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700"
-                                  >
-                                    <Download
-                                      size={15}
-                                      className="mr-2 inline"
-                                    />
-                                    Download
                                   </button>
 
                                   <button
