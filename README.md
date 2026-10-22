@@ -187,6 +187,6 @@ Uploaded files are stored locally in `backend/uploads/`, while their metadata is
 - Tested PDF upload, preview, sharing, recipient access, and view-only download restrictions.
 
 **Status:** Core document-sharing workflow implemented and tested.!
-[alt text](<Screenshot 2026-10-22 083322.png>)!
-[alt text](<Screenshot 2026-10-22 081759.png>)!
+![alt text](<Screenshot 2026-10-22 081759.png>)!
 [alt text](<Screenshot 2026-10-22 082124.png>)
+![alt text](<Screenshot 2026-10-22 083322.png>)
