@@ -174,3 +174,19 @@ Uploaded files are stored locally in `backend/uploads/`, while their metadata is
 - Added file type and 10 MB upload size validation.
 - Connected frontend upload, listing, and preview with backend APIs.
 - Added SQLite database migration for document ownership.
+
+
+### 22 October 2026 — Secure Document Sharing
+
+- Integrated backend APIs for document sharing and access permissions.
+- Added recipient-based sharing with configurable expiry.
+- Implemented **View Only** and **View & Download** permissions.
+- Added shared document preview for recipients.
+- Implemented share management with active status and revoke option.
+- Migrated the existing SQLite database to support document ownership.
+- Tested PDF upload, preview, sharing, recipient access, and view-only download restrictions.
+
+**Status:** Core document-sharing workflow implemented and tested.!
+[alt text](<Screenshot 2026-10-22 083322.png>)!
+[alt text](<Screenshot 2026-10-22 081759.png>)!
+[alt text](<Screenshot 2026-10-22 082124.png>)
